@@ -6,7 +6,16 @@ dotenv.config()
 
 const app = express();
 
+//body parser
+app.use(express.json({limit:"50mb"}))
 
+//cookie-parser handle cookies in frontend
+app.use(cookieParser())
+
+// cors handle resourse handling
+app.use(cors({
+    origin:process.env.CLIENT_URI
+}))
 
 
 
