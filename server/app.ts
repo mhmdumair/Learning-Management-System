@@ -2,7 +2,8 @@ import express, { NextFunction, Request, Response } from 'express';
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import dotenv from 'dotenv'
-import HttpError from './utils/HtttpError'
+import ErrorHandler from './utils/ErrorHandler'
+import errorHandlerMiddleware from './middleware/error'
 dotenv.config()
 
 const app = express();
@@ -13,7 +14,7 @@ app.use(express.json({limit:"50mb"}))
 //cookie-parser handle cookies in frontend
 app.use(cookieParser())
 
-// cors handle resourse handling
+// cors handle recourse handling
 app.use(cors({
     origin:process.env.CLIENT_URI
 }))
@@ -21,15 +22,17 @@ app.use(cors({
 //Test route
 app.get('/test',(req:Request,res: Response,next:NextFunction)=>{
     res.status(200).json({
-        succses :true,
+        success :true,
         message : "Api is working fine"
     })
 })
 
 // To handle unknown Routes
 app.get('*',(req:Request,res:Response,next:NextFunction)=>{
-    const err = new HttpError(`${req.originalUrl} not found`,404)
+    const err = new ErrorHandler(`${req.originalUrl} not found`,404)
     next(err)
 })
+
+app.use(errorHandlerMiddleware)
 
 export default app;
