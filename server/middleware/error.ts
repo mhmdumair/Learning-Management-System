@@ -7,15 +7,15 @@ const errorHandlerMiddleware = (err:any , req: Request,res :Response,next:NextFu
     err.message = err.message || 'Internal server Error'
 
     // wrong mongoDb id
-    if(err.name === 'CastError'){
-        const message = `Resource no found Invalid ${err.path}`
-        err = new ErrorHandler(message,400)
+    if (err.name === 'CastError') {
+        const message = `Resource not found: Invalid value for ${err.path}`;
+        err = new ErrorHandler(message, 400);
     }
 
     //Duplicate key Error
-    if(err.code === 11000){
-        const message = `Duplicate ${Object.keys(err.keyValue)} entered`
-        err = new ErrorHandler(message,400)
+    if (err.code === 11000) {
+        const message = `Duplicate value entered for field: ${Object.keys(err.keyValue).join(', ')}`;
+        err = new ErrorHandler(message, 400);
     }
 
     //Wrong jwt error
