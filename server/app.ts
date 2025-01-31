@@ -4,6 +4,7 @@ import cookieParser from 'cookie-parser'
 import dotenv from 'dotenv'
 import ErrorHandler from './utils/ErrorHandler'
 import errorHandlerMiddleware from './middleware/error'
+import userRouter from './routes/user.route'
 dotenv.config()
 
 const app = express();
@@ -18,6 +19,9 @@ app.use(cookieParser())
 app.use(cors({
     origin:process.env.CLIENT_URI
 }))
+
+//routes
+app.use('/api/v1',userRouter)
 
 //Test route
 app.get('/test',(req:Request,res: Response,next:NextFunction)=>{

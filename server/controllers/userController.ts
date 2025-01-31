@@ -46,11 +46,11 @@ export const registerUser = catchAsyncError(async(req:Request,res:Response,next:
                 message : 'Check your email to activate your account',
                 activationToken : activationToken.token
             })
-        }catch(error){
+        }catch(error:any){
             return next(new ErrorHandler(error.message,400))
         }
 
-    } catch (error) {
+    } catch (error:any) {
         return  next(new ErrorHandler(error.message,400))
     }
 })
