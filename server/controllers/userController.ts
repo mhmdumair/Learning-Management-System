@@ -32,7 +32,7 @@ export const registerUser = catchAsyncError(async(req:Request,res:Response,next:
         const activationToken = createActivationToken(user)
         const activationCode = activationToken.activationCode
         const data = {user: {name:user.name},activationCode}
-        const html = ejs.renderFile(path.join(__dirname,'../mails/activation.mail.ejs'),data)
+        const html = await ejs.renderFile(path.join(__dirname,'../mails/activation.mail.ejs'),data)
 
         try{
             await sendMail({
@@ -70,3 +70,37 @@ function createActivationToken(user:any):IActivationToken{
 
     return {token,activationCode}
 }
+
+interface IActivationRequest {
+    activationToken : string
+    activationCode : string
+}
+
+export const activateUser = catchAsyncError(async (req:Request,res:Response,next:NextFunction)=>{
+    try {
+        const {activationToken,activationCode} = req.body as IActivationRequest
+
+        const newUser:{user:IUser,activationCode:string} = jwt.verify(activationToken,process.env.ACTIVATION_SECRET as string) as {user:IUser,activationCode:string}
+
+        if(newUser.activationCode !== activationCode){
+            return next(new ErrorHandler('Invalid activation code',400))
+        }
+
+        const {name,email,password} = newUser.user
+        const exists = await userModel.findOne({email})
+        if(exists){
+            return next(new ErrorHandler('User already exists',400))
+        }
+
+        const user = await userModel.create({
+            name,
+            email,
+            password
+        })
+        res.status(201).json({
+            success :true
+        })
+    } catch (error:any) {
+        return next(new ErrorHandler(error.message,400))
+    }
+})
