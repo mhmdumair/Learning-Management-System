@@ -6,6 +6,7 @@ import sendMail from '../utils/sendMail'
 import jwt,{Secret} from 'jsonwebtoken'
 import ejs from 'ejs'
 import path from 'path'
+import {sendToken} from '../utils/jwt'
 import dotenv from 'dotenv'
 dotenv.config()
 
@@ -134,6 +135,8 @@ export const loginUser = catchAsyncError(async (req:Request,res:Response,next:Ne
         if(!isPasswordMatch){
             return next(new ErrorHandler('Invalid Password',400))
         }
+
+        sendToken(user,200,res)
     } catch (error:any) {
         return next(new ErrorHandler(error.message,400))
     }
