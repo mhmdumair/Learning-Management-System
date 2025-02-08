@@ -9,7 +9,10 @@ import path from 'path'
 import dotenv from 'dotenv'
 dotenv.config()
 
-//Register User
+
+//----------------------------------Register User--------------------------
+
+
 interface IUserRegisterBody{
     name :string
     email:string
@@ -100,6 +103,37 @@ export const activateUser = catchAsyncError(async (req:Request,res:Response,next
         res.status(201).json({
             success :true
         })
+    } catch (error:any) {
+        return next(new ErrorHandler(error.message,400))
+    }
+})
+
+
+//----------------------------------User Login--------------------------
+
+
+interface ILoginUser {
+    email :string
+    password : string
+}
+
+export const loginUser = catchAsyncError(async (req:Request,res:Response,next:NextFunction)=>{
+    try {
+        const {email,password} = req.body as ILoginUser
+        if(!email || !password){
+            return next(new ErrorHandler('Please enter email and password',400))
+        }
+        const user = await userModel.findOne({email}).select('+password') // we set password select false in user model so we have to select it explicitly
+
+        if(!user){
+            return next (new ErrorHandler('Invalid Email',400))
+        }
+
+        const isPasswordMatch = await user.comparePassword(password)
+
+        if(!isPasswordMatch){
+            return next(new ErrorHandler('Invalid Password',400))
+        }
     } catch (error:any) {
         return next(new ErrorHandler(error.message,400))
     }
