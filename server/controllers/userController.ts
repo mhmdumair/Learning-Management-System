@@ -8,6 +8,7 @@ import ejs from 'ejs'
 import path from 'path'
 import {sendToken} from '../utils/jwt'
 import dotenv from 'dotenv'
+import { redis } from '../utils/redis'
 dotenv.config()
 
 
@@ -149,6 +150,8 @@ export const logOut = catchAsyncError(async (req:Request,res:Response,next:NextF
     try {
         res.cookie('accessToken','',{maxAge:1})
         res.cookie('refreshToken','',{maxAge:1})
+        const userId = req.user._id || ''
+        redis.del(userId)
         res.status(200).json({
             success :true,
             message : 'Logged out successfully'
