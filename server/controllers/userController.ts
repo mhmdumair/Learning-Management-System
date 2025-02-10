@@ -3,10 +3,10 @@ import userModel,{IUser} from '../models/user.model'
 import ErrorHandler from '../utils/ErrorHandler'
 import catchAsyncError  from '../middleware/catchAsyncErrors'
 import sendMail from '../utils/sendMail'
-import jwt,{Secret} from 'jsonwebtoken'
+import jwt,{JwtPayload, Secret} from 'jsonwebtoken'
 import ejs from 'ejs'
 import path from 'path'
-import {sendToken} from '../utils/jwt'
+import {accessTokenOptions, refreshTokenOptions, sendToken} from '../utils/jwt'
 import dotenv from 'dotenv'
 import { redis } from '../utils/redis'
 dotenv.config()
@@ -170,7 +170,7 @@ export const updateAccessToken = catchAsyncError(async (req:Request,res:Response
         if(!refresh_token){
             return next(new ErrorHandler('Please login to access this resource',401))
         }
-        const decoded = jwt.verify(refresh_token,process.env.REFRESH_SECRET as Secret) as {id:string}
+        const decoded = jwt.verify(refresh_token,process.env.REFRESH_TOKEN_SECRET as Secret) as JwtPayload
 
         if(!decoded){
             return next(new ErrorHandler('Could not refresh Token',404))
@@ -182,9 +182,17 @@ export const updateAccessToken = catchAsyncError(async (req:Request,res:Response
         }
         const user = JSON.parse(session)
 
-        const accessToken = jwt.sign({id:user._id},process.env.ACCESS_SECRET as Secret,{expiresIn:'15m'})
-        
-        const refreshToken = jwt.sign({id:user._id},process.env.REFRESH_SECRET as Secret,{expiresIn:'3d'})
+        const accessToken = jwt.sign({id:user._id},process.env.ACCESS_TOKEN_SECRET as Secret,{expiresIn:'15m'})
+
+        const refreshToken = jwt.sign({id:user._id},process.env.REFRESH_TOKEN_SECRET as Secret,{expiresIn:'3d'})
+
+        res.cookie('accessToken',accessToken,accessTokenOptions)
+        res.cookie('refreshToken',refreshToken,refreshTokenOptions)
+
+        res.status(200).json({
+            status: "success",
+            accessToken
+        })
         
     } catch (error:any) {
         return next(new ErrorHandler(error.message,400))
