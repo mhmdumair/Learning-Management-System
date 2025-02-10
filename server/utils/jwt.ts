@@ -25,15 +25,15 @@ export const sendToken = (user :IUser , statusCode : number ,res :Response)=>{
 
     // Options for cookies
     const accessTokenOptions :ITokenOptions = {
-        expires : new Date(Date.now() + accessTokenExpired * 1000),
-        maxAge : accessTokenExpired * 1000,
+        expires : new Date(Date.now() + accessTokenExpired * 1000*60*60),
+        maxAge : accessTokenExpired * 1000*60*60,
         httpOnly : true,
         samSite : 'lax',
         secure : false
     }
     const refreshTokenOptions :ITokenOptions = {
-        expires : new Date(Date.now() + refreshTokenExpired * 1000),
-        maxAge : refreshTokenExpired * 1000,
+        expires : new Date(Date.now() + refreshTokenExpired * 1000*60*60*24),
+        maxAge : refreshTokenExpired * 1000*60*60*24,
         httpOnly : true,
         samSite : 'lax',
         secure : false

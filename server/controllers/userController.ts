@@ -161,3 +161,33 @@ export const logOut = catchAsyncError(async (req:Request,res:Response,next:NextF
         
     }
 })
+
+//----------------------Update Access Token--------------------------
+
+export const updateAccessToken = catchAsyncError(async (req:Request,res:Response,next:NextFunction)=>{
+    try {
+        const refresh_token = req.cookies.refreshToken
+        if(!refresh_token){
+            return next(new ErrorHandler('Please login to access this resource',401))
+        }
+        const decoded = jwt.verify(refresh_token,process.env.REFRESH_SECRET as Secret) as {id:string}
+
+        if(!decoded){
+            return next(new ErrorHandler('Could not refresh Token',404))
+        }
+        const session = await redis.get(decoded.id)
+        
+        if(!session){
+            return next(new ErrorHandler('Could not refresh Token',404))
+        }
+        const user = JSON.parse(session)
+
+        const accessToken = jwt.sign({id:user._id},process.env.ACCESS_SECRET as Secret,{expiresIn:'15m'})
+        
+        const refreshToken = jwt.sign({id:user._id},process.env.REFRESH_SECRET as Secret,{expiresIn:'3d'})
+        
+    } catch (error:any) {
+        return next(new ErrorHandler(error.message,400))
+        
+    }
+})

@@ -84,12 +84,12 @@ userSchema.methods.comparePassword = async function(enteredPassword : string):Pr
 
 // Sign Access Token
 userSchema.methods.SignAccessToken = function(){
-    return jwt.sign({id:this._id},process.env.ACCESS_TOKEN_SECRET as string)
+    return jwt.sign({id:this._id},process.env.ACCESS_TOKEN_SECRET as string,{expiresIn:"5m"})
 }
 
 //Sign Refresh Token
 userSchema.methods.SignRefreshToken = function(){
-    return jwt.sign({id:this._id},process.env.REFRESH_TOKEN_SECRET as string)
+    return jwt.sign({id:this._id},process.env.REFRESH_TOKEN_SECRET as string,{expiresIn:"3d"})
 }
 
 const useModel:Model<IUser> = mongoose.model("User",userSchema)
