@@ -9,6 +9,7 @@ import path from 'path'
 import {accessTokenOptions, refreshTokenOptions, sendToken} from '../utils/jwt'
 import dotenv from 'dotenv'
 import { redis } from '../utils/redis'
+import { getUserById } from '../services/user.services'
 dotenv.config()
 
 
@@ -197,5 +198,47 @@ export const updateAccessToken = catchAsyncError(async (req:Request,res:Response
     } catch (error:any) {
         return next(new ErrorHandler(error.message,400))
         
+    }
+})
+
+//----------------------------------Get User--------------------------
+
+
+export const getUserInfo = catchAsyncError(async (req:Request,res:Response,next:NewableFunction)=>{
+    try {
+        const userId = req.user?._id
+        if(!userId){
+            return next(new ErrorHandler('User not found',404))
+        }
+        getUserById(userId,res)
+    } catch (error:any) {
+        return next(new ErrorHandler(error.message,400))
+        
+    }
+})
+
+
+//socialAuth
+
+interface ISocialAuth{
+    name : string
+    email : string
+    avatar : string
+}
+
+
+export const socialAuth = catchAsyncError(async (req:Request,res:Response,next:NextFunction)=>{
+    const {name,email,avatar} = req.body as ISocialAuth
+    const user = await userModel.findOne({email})
+    if(user){
+        sendToken(user,200,res)
+    }
+    else{
+        const newUser = await userModel.create({
+            name,
+            email,
+            avatar
+        })
+        sendToken(newUser,200,res)
     }
 })
