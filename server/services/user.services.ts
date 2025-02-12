@@ -12,4 +12,5 @@ export const getUserById = async (id:string,res:Response)=>{
             success :true,
             user
         })
+    }
 }

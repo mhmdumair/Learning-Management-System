@@ -187,6 +187,8 @@ export const updateAccessToken = catchAsyncError(async (req:Request,res:Response
 
         const refreshToken = jwt.sign({id:user._id},process.env.REFRESH_TOKEN_SECRET as Secret,{expiresIn:'3d'})
 
+        req.user = user
+
         res.cookie('accessToken',accessToken,accessTokenOptions)
         res.cookie('refreshToken',refreshToken,refreshTokenOptions)
 
@@ -270,10 +272,55 @@ export const updateUserInfo = catchAsyncError(async (req:Request,res:Response,ne
         await user?.save()
         redis.set(userId,JSON.stringify(user))
 
-        res.status(200).json({
+        res.status(201).json({
             success :true
         })
     } catch (error:any) {
         return next(new ErrorHandler(error.message,400))
     }
 })
+
+
+//----------------------------------Update User Password-----------------------
+
+interface IUpdatePassword{
+    oldPassword:string
+    newPassword :string
+}
+
+export const updateUserPassword = catchAsyncError(async (req:Request,res:Response,next:NextFunction)=>{
+    try {
+        const {oldPassword,newPassword} = req.body as IUpdatePassword
+        const userId = req.user?._id
+        const user = await userModel.findById(userId).select('+password')
+
+        if(!oldPassword || !newPassword){  
+            return next(new ErrorHandler("Please enter old and new password",400))
+        }
+
+        if(user?.password === undefined){
+            return next(new ErrorHandler("Invalid User",400))
+        }
+
+        const isPasswordMatch = await user.comparePassword(oldPassword)
+
+        if(!isPasswordMatch){
+            return next(new ErrorHandler("Current Password does not match",400))
+        }
+
+        user.password = newPassword
+        await user.save()
+        await redis.set(userId,JSON.stringify(user))
+
+        res.status(201).json({
+            success :true,
+            user
+        })
+
+    } catch (error:any) {
+        return next(new ErrorHandler(error.message,400))
+        
+    }
+
+})
+
