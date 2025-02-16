@@ -137,3 +137,7 @@ const courseSchema = new Schema<ICourse>({
         default: 0
     }
 })
+
+const courseModel :Model<ICourse> =mongoose.model('Course',courseSchema)
+
+export default courseModel
