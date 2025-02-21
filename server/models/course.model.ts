@@ -101,11 +101,9 @@ const courseSchema = new Schema<ICourse>({
     thumbnail : {
         public_id : {
             type: String,
-            required: true
         },
         url : {
             type: String,
-            required: true
         }
     },
     tags : {
@@ -118,7 +116,6 @@ const courseSchema = new Schema<ICourse>({
     },
     demoUrl : {
         type: String,
-        required: true
     },
     benefits : [{
         title : String

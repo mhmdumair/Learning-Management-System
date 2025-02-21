@@ -5,6 +5,7 @@ import dotenv from 'dotenv'
 import ErrorHandler from './utils/ErrorHandler'
 import errorHandlerMiddleware from './middleware/error'
 import userRouter from './routes/user.route'
+import courseRouter from './routes/course.route'
 dotenv.config()
 
 const app = express();
@@ -22,6 +23,8 @@ app.use(cors({
 
 //routes
 app.use('/api/v1',userRouter)
+app.use('/api/v1',courseRouter)
+
 
 //Test route
 app.get('/test',(req:Request,res: Response,next:NextFunction)=>{
