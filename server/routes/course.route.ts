@@ -22,7 +22,8 @@ courseRouter.get('/get-course/:id',
 courseRouter.get('/get-courses', 
     getAllCourses);
 
-courseRouter.get('/get-course-content/:id', 
+courseRouter.get('/get-course-content/:id',
+    isAuthenticated,
     getCourseContent);
 
 
