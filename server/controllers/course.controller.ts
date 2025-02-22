@@ -4,6 +4,7 @@ import catchAsyncError  from '../middleware/catchAsyncErrors'
 import cloudinary from 'cloudinary'
 import { createCourse } from '../services/course.services';
 import courseModel from '../models/course.model';
+import { redis } from '../utils/redis';
 
 
 //Upload Course
@@ -66,13 +67,43 @@ export const editCourse = catchAsyncError(async (req: Request, res: Response, ne
 
 export const getSingleCourse = catchAsyncError(async (req: Request, res: Response, next: any) => {
     try {
-        const course = await courseModel.findById(req.params.id).select('-courseData.videoUrl -courseData.suggestion -courseData.questions -courseData.links')
-        if(!course){
-            return next(new ErrorHandler('Course not found', 404))
+
+        const courseId = req.params.id;
+        const isCacheExists = await redis.get(courseId)
+        
+        if(isCacheExists){
+            return res.status(200).json({
+                success: true,
+                course: JSON.parse(isCacheExists)
+            })
+        }else{
+            const course = await courseModel.findById(courseId).select('-courseData.videoUrl -courseData.suggestion -courseData.questions -courseData.links')
+            await redis.set(courseId,JSON.stringify(course))
+            if(!course){
+                return next(new ErrorHandler('Course not found', 404))
+            }
+            res.status(200).json({
+                success: true,
+                course
+            })
         }
+        
+    } catch (error:any) {
+        return next(new ErrorHandler(error.message, 500))
+        
+    }
+})
+
+
+// Get All courses -- without purchasing
+
+export const getAllCourses = catchAsyncError(async (req: Request, res: Response, next: any) => {
+    try {
+
+        const courses = await courseModel.find().select('-courseData.videoUrl -courseData.suggestion -courseData.questions -courseData.links')
         res.status(200).json({
             success: true,
-            course
+            courses
         })
         
     } catch (error:any) {
