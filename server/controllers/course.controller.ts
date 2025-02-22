@@ -1,4 +1,4 @@
-import {Request, Response} from 'express';
+import {NextFunction, Request, Response} from 'express';
 import ErrorHandler from '../utils/ErrorHandler'
 import catchAsyncError  from '../middleware/catchAsyncErrors'
 import cloudinary from 'cloudinary'
@@ -111,3 +111,30 @@ export const getAllCourses = catchAsyncError(async (req: Request, res: Response,
         
     }
 })
+
+
+//Get course content- only for valid User
+
+export const getCourseContent = catchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const courseList = req.user?.courses ?? []; 
+        const courseId = req.params.id;
+
+        const courseExists = courseList.some((course: any) => course._id.toString() === courseId);
+        if (!courseExists) {
+            return next(new ErrorHandler("You are not eligible to access this course", 403));
+        }
+
+        const course = await courseModel.findById(courseId);
+        if (!course) {
+            return next(new ErrorHandler("Course not found", 404));
+        }
+
+        res.status(200).json({
+            success: true,
+            content: course.courseData,
+        });
+    } catch (error: any) {
+        return next(new ErrorHandler(error.message || "Internal Server Error", 500));
+    }
+});
